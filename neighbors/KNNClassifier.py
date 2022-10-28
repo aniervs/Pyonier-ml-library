@@ -14,6 +14,7 @@ class KNNClassifier:
     def fit(self, X, y):
         self.train_X = X
         self.train_y = y
+        return self
 
     def predict(self, X):
         '''
