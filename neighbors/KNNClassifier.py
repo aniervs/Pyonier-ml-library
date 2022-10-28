@@ -4,7 +4,7 @@ from collections import Counter
 
 class KNNClassifier:
     """
-    K-neariest-neighbor classifier using L1 ('manhattan') or L2 ('euclidean') loss
+    K-nearest-neighbor classifier using L1 ('manhattan') or L2 ('euclidean') loss
     """
 
     def __init__(self, k=1, metric=None):
@@ -91,8 +91,8 @@ class KNNClassifier:
            for every test sample
         '''
         num_test = dists.shape[0]
-        pred = np.zeros(num_test, np.bool)
+        pred = np.zeros(num_test, np.int)
         for i in range(num_test):
             idx = np.argpartition(dists[i], self.k)
-            pred[i] = np.bool(Counter(self.train_X[idx]).most_common(n=1)[0][0])
+            pred[i] = Counter(self.train_X[idx]).most_common(n=1)[0][0]
         return pred
