@@ -4,7 +4,7 @@ from Node import Node
 from utils import one_hot_encode
 
 
-class DecisionTree:
+class DecisionTreeClassifier:
     all_criteria = {
         'gini': gini,
         'entropy': entropy
@@ -203,6 +203,7 @@ class DecisionTree:
         y = one_hot_encode(self.n_classes, y)
 
         self.root = self.make_tree(X, y)
+        return self
 
     def predict(self, X):
         """
