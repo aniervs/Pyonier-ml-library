@@ -74,7 +74,7 @@ class KNNClassifier:
         num_test = dists.shape[0]
         pred = np.zeros(num_test, np.bool)
         for i in range(num_test):
-            idx = np.argpartition(dists, self.k)
+            idx = np.argpartition(dists[i], self.k)
             pred[i] = np.bool(Counter(self.train_X[idx]).most_common(n=1)[0][0])
         return pred
 
@@ -93,6 +93,6 @@ class KNNClassifier:
         num_test = dists.shape[0]
         pred = np.zeros(num_test, np.bool)
         for i in range(num_test):
-            idx = np.argpartition(dists, self.k)
-            pred = np.bool(Counter(self.train_X[idx]).most_common(n=1)[0][0])
+            idx = np.argpartition(dists[i], self.k)
+            pred[i] = np.bool(Counter(self.train_X[idx]).most_common(n=1)[0][0])
         return pred
