@@ -1,4 +1,4 @@
-# own-ml-library
+# Pyonier-ml-library
 
 Library containing my own implementations of classical Machine Learning models, by using only Numpy.
 Contains:
