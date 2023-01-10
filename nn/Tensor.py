@@ -18,7 +18,7 @@ class Tensor:
         return Tensor(self.data * -1)
 
     def __sub__(self, other):
-        return Tensor(self.data * other.data)
+        return Tensor(self.data - other.data)
 
     def __mul__(self, other):
         return Tensor(self.data * other.data)
