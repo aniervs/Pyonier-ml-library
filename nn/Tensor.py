@@ -11,7 +11,10 @@ class Tensor:
     def backward(self, grad=None):
         if grad is None:
             grad = Tensor([1])
-        self.grad = grad
+        if self.grad is None:
+            self.grad = Tensor([0])
+
+        self.grad = self.grad + grad
 
         if self.parents_operation == "add":
             self.parents[0].backward(grad)

@@ -9,6 +9,7 @@ class TestTensor(TestCase):
     def setUp(self) -> None:
         self.tensor1 = Tensor([1, 2, 3, 4])
         self.tensor2 = Tensor([5, 6, 7, 8])
+        self.tensor3 = Tensor([9, 10, 11, 12])
 
     def testAddition(self):
         new_tensor = self.tensor1 + self.tensor2
@@ -60,3 +61,15 @@ class TestTensor(TestCase):
         new_tensor.backward()
         self.assertEqual(np.all(self.tensor1.grad.data - np.array([5, 6, 7, 8])), 0)
         self.assertEqual(np.all(self.tensor2.grad.data - np.array([1, 2, 3, 4])), 0)
+
+    def testBackwardMultipleUses(self):
+        d = self.tensor1 + self.tensor2
+        e = self.tensor2 + self.tensor3
+        f = d + e
+
+        f.backward()
+
+        self.assertEqual(self.tensor1.grad.data, np.array([1]))
+        self.assertEqual(self.tensor3.grad.data, np.array([1]))
+        self.assertEqual(self.tensor2.grad.data, np.array([2]))
+
