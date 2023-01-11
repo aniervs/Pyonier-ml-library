@@ -8,7 +8,9 @@ class Tensor:
         self.parents_operation = parents_operation
         self.grad = None
 
-    def backward(self, grad):
+    def backward(self, grad=None):
+        if grad is None:
+            grad = Tensor([1], None, None)
         self.grad = grad
 
         if self.parents_operation == "add":

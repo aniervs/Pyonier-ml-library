@@ -37,3 +37,26 @@ class TestTensor(TestCase):
         self.assertEqual(np.all(expected.data - new_tensor.data), 0)
         self.assertEqual(expected.parents, new_tensor.parents)
         self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
+
+    def testBackwardAdd(self):
+        new_tensor = self.tensor1 + self.tensor2
+        new_tensor.backward()
+        self.assertEqual(np.all(self.tensor1.grad.data - np.array([1])), 0)
+        self.assertEqual(np.all(self.tensor2.grad.data - np.array([1])), 0)
+
+    def testBackwardSub(self):
+        new_tensor = self.tensor1 - self.tensor2
+        new_tensor.backward()
+        self.assertEqual(self.tensor1.grad.data, np.array([1]))
+        self.assertEqual(self.tensor2.grad.data, -np.array([1]))
+
+    def testBackwardNeg(self):
+        new_tensor = -self.tensor1
+        new_tensor.backward()
+        self.assertEqual(self.tensor1.grad.data, -np.array([1]))
+
+    def testBackwardMul(self):
+        new_tensor = self.tensor1 * self.tensor2
+        new_tensor.backward()
+        self.assertEqual(np.all(self.tensor1.grad.data - np.array([5, 6, 7, 8])), 0)
+        self.assertEqual(np.all(self.tensor2.grad.data - np.array([1, 2, 3, 4])), 0)
