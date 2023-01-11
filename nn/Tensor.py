@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Tensor:
-    def __init__(self, data, parents, parents_operation):
+    def __init__(self, data, parents=None, parents_operation=None):
         self.data = np.array(data)
         self.parents = parents
         self.parents_operation = parents_operation
@@ -10,7 +10,7 @@ class Tensor:
 
     def backward(self, grad=None):
         if grad is None:
-            grad = Tensor([1], None, None)
+            grad = Tensor([1])
         self.grad = grad
 
         if self.parents_operation == "add":

@@ -7,8 +7,8 @@ from nn.Tensor import Tensor
 
 class TestTensor(TestCase):
     def setUp(self) -> None:
-        self.tensor1 = Tensor([1, 2, 3, 4], None, None)
-        self.tensor2 = Tensor([5, 6, 7, 8], None, None)
+        self.tensor1 = Tensor([1, 2, 3, 4])
+        self.tensor2 = Tensor([5, 6, 7, 8])
 
     def testAddition(self):
         new_tensor = self.tensor1 + self.tensor2
