@@ -1,11 +1,11 @@
-from unittest import TestCase
+import unittest
 
 import numpy as np
 
 from nn.Tensor import Tensor
 
 
-class TestTensor(TestCase):
+class TestTensor(unittest.TestCase):
     def setUp(self) -> None:
         self.tensor1 = Tensor([1, 2, 3, 4])
         self.tensor2 = Tensor([5, 6, 7, 8])
@@ -73,3 +73,6 @@ class TestTensor(TestCase):
         self.assertEqual(self.tensor3.grad.data, np.array([1]))
         self.assertEqual(self.tensor2.grad.data, np.array([2]))
 
+
+if __name__ == '__main__':
+    unittest.main()
