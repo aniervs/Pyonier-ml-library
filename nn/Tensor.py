@@ -8,14 +8,21 @@ class Tensor:
         self.parents = parents
         self.parents_operation = parents_operation
         self.grad = None
-        self.children = None
-        if self.parents is not None:
-            for parent in self.parents:
-                if parent.children is None:
-                    parent.children = dict()
-                if self not in parent.children:
-                    parent.children[self] = 0
-                parent.children[self] += 1
+        self.children = dict()
+        self.__update_parents()
+
+    def __update_parents(self):
+        if self.parents is None:
+            return
+
+        if self not in self.parents[0].children:
+            self.parents[0].children[self] = 0
+        self.parents[0].children[self] += 1
+
+        if self.parents_operation not in {"neg", "pow"}:
+            if self not in self.parents[1].children:
+                self.parents[1].children[self] = 0
+            self.parents[1].children[self] += 1
 
     def backward(self, grad=None, grad_vertex=None):
         if not self.autograd:
@@ -28,10 +35,10 @@ class Tensor:
             self.grad = Tensor([0])
 
         self.grad = self.grad + grad
-        if self.children is not None:
+        if grad_vertex is not None:
             self.children[grad_vertex] -= 1
 
-        if self.children is not None and max(self.children.values()) != 0:
+        if len(self.children) != 0 and max(self.children.values()) != 0:
             return
 
         if self.parents is None or self.parents_operation is None:
@@ -48,9 +55,13 @@ class Tensor:
         elif self.parents_operation == "mul":
             self.parents[0].backward(self.grad * self.parents[1], self)
             self.parents[1].backward(self.grad * self.parents[0], self)
+        elif self.parents_operation == "pow":
+            power = self.parents[1]
+            new_tensor = self.grad * (self.parents[0] ** (power - 1))
+            new_tensor.data *= power
+            self.parents[0].backward(new_tensor)
 
-        for parent in self.parents:
-            parent.children[self] += 1
+        self.__update_parents()
 
     def __repr__(self):
         return self.data.__repr__()
@@ -77,3 +88,8 @@ class Tensor:
         if self.autograd and other.autograd:
             return Tensor(self.data * other.data, autograd=True, parents=[self, other], parents_operation="mul")
         return Tensor(self.data * other.data)
+
+    def __pow__(self, power):
+        if self.autograd:
+            return Tensor(self.data ** power, autograd=True, parents=[self, power], parents_operation="pow")
+        return Tensor(self.data ** power)

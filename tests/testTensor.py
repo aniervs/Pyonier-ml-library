@@ -43,6 +43,14 @@ class TestTensor(unittest.TestCase):
         self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
         self.assertTrue(new_tensor.autograd)
 
+    def testPower(self):
+        new_tensor = self.tensor1 ** 3
+        expected = Tensor([1, 8, 27, 64], parents=[self.tensor1, 3], parents_operation="pow")
+        self.assertEqual(np.all(expected.data - new_tensor.data), 0)
+        self.assertEqual(expected.parents, new_tensor.parents)
+        self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
+        self.assertTrue(new_tensor.autograd)
+
     def testBackwardAdd(self):
         new_tensor = self.tensor1 + self.tensor2
         new_tensor.backward()
@@ -95,6 +103,17 @@ class TestTensor(unittest.TestCase):
         new_tensor.backward()
         self.assertIsNone(self.tensor1.grad)
         self.assertIsNone(self.tensor2.grad)
+
+    def testBackwardPow(self):
+        new_tensor = self.tensor1 ** 3
+        new_tensor.backward()
+        self.assertEqual(np.all(self.tensor1.grad.data - np.array([3, 12, 27, 48])), 0)
+
+        self.tensor1.autograd = False
+        self.tensor1.grad = None
+        new_tensor = self.tensor1 ** 3
+        new_tensor.backward()
+        self.assertIsNone(self.tensor1.grad)
 
     def testBackwardMultipleUses(self):
         d = self.tensor1 + self.tensor2
