@@ -1,6 +1,6 @@
 import unittest
 
-from utils.utils import count_number_calls
+from utils import count_number_calls
 
 
 class TestCountNumberCalls(unittest.TestCase):
