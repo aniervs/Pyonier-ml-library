@@ -2,8 +2,9 @@ import numpy as np
 
 
 class Tensor:
-    def __init__(self, data, parents=None, parents_operation=None):
+    def __init__(self, data, autograd=False, parents=None, parents_operation=None):
         self.data = np.array(data)
+        self.autograd = autograd
         self.parents = parents
         self.parents_operation = parents_operation
         self.grad = None
@@ -17,6 +18,9 @@ class Tensor:
                 parent.children[self] += 1
 
     def backward(self, grad=None, grad_vertex=None):
+        if not self.autograd:
+            return
+
         if grad is None:
             grad = Tensor([1])
 
@@ -55,13 +59,21 @@ class Tensor:
         return self.data.__str__()
 
     def __add__(self, other):
-        return Tensor(self.data + other.data, parents=[self, other], parents_operation="add")
+        if self.autograd and other.autograd:
+            return Tensor(self.data + other.data, autograd=True, parents=[self, other], parents_operation="add")
+        return Tensor(self.data  + other.data)
 
     def __neg__(self):
-        return Tensor(self.data * -1, parents=[self], parents_operation="neg")
+        if self.autograd:
+            return Tensor(self.data * -1, autograd=True, parents=[self], parents_operation="neg")
+        return Tensor(self.data * -1)
 
     def __sub__(self, other):
-        return Tensor(self.data - other.data, parents=[self, other], parents_operation="sub")
+        if self.autograd and other.autograd:
+            return Tensor(self.data - other.data, autograd=True, parents=[self, other], parents_operation="sub")
+        return Tensor(self.data - other.data)
 
     def __mul__(self, other):
-        return Tensor(self.data * other.data, parents=[self, other], parents_operation="mul")
+        if self.autograd and other.autograd:
+            return Tensor(self.data * other.data, autograd=True, parents=[self, other], parents_operation="mul")
+        return Tensor(self.data * other.data)
