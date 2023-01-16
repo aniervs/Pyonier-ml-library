@@ -46,8 +46,6 @@ class Tensor:
             self.parents[1].backward(self.grad * self.parents[0], self)
 
         for parent in self.parents:
-            if self not in parent.children:
-                parent.children[self] = 0
             parent.children[self] += 1
 
     def __repr__(self):
