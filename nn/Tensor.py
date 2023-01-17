@@ -11,6 +11,12 @@ class Tensor:
         self.children = dict()
         self.__update_parents()
 
+    def __repr__(self):
+        return self.data.__repr__()
+
+    def __str__(self):
+        return self.data.__str__()
+
     def __update_parents(self):
         if self.parents is None:
             return
@@ -63,12 +69,6 @@ class Tensor:
 
         self.__update_parents()
 
-    def __repr__(self):
-        return self.data.__repr__()
-
-    def __str__(self):
-        return self.data.__str__()
-
     def __add__(self, other):
         if self.autograd and other.autograd:
             return Tensor(self.data + other.data, autograd=True, parents=[self, other], parents_operation="add")
@@ -93,3 +93,4 @@ class Tensor:
         if self.autograd:
             return Tensor(self.data ** power, autograd=True, parents=[self, power], parents_operation="pow")
         return Tensor(self.data ** power)
+
