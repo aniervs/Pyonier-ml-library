@@ -1,4 +1,8 @@
+from copy import deepcopy
+
 import numpy as np
+
+unary_operations = {"neg", "pow", "transpose", "expand", "sum", "relu"}
 
 
 class Tensor:
@@ -25,7 +29,7 @@ class Tensor:
             self.parents[0].children[self] = 0
         self.parents[0].children[self] += 1
 
-        if self.parents_operation not in {"neg", "pow", "transpose", "expand", "sum"}:
+        if self.parents_operation not in unary_operations:
             if self not in self.parents[1].children:
                 self.parents[1].children[self] = 0
             self.parents[1].children[self] += 1
@@ -65,26 +69,28 @@ class Tensor:
             power = self.parents[1]
             new_tensor = self.grad * (self.parents[0] ** (power - 1))
             new_tensor.data *= power
-            self.parents[0].backward(new_tensor)
+            self.parents[0].backward(new_tensor, self)
         elif self.parents_operation == "transpose":
-            self.parents[0].backward(self.grad.transpose())
+            self.parents[0].backward(self.grad.transpose(), self)
         elif self.parents_operation[:3] == "sum":
             dim = self.parents[1]
             ds = self.parents[0].data.shape[dim]
-            self.parents[0].backward(self.grad.expand(dim, ds))
+            self.parents[0].backward(self.grad.expand(dim, ds), self)
         elif self.parents_operation[:6] == "expand":
             dim = self.parents[1]
-            self.parents[0].backward(self.grad.sum(dim))
+            self.parents[0].backward(self.grad.sum(dim), self)
         elif self.parents_operation == "matmul":
-            self.parents[0].backward(self.grad @ self.parents[1].transpose())
-            self.parents[1].backward(self.parents[0].transpose() @ self.grad)
+            self.parents[0].backward(self.grad @ self.parents[1].transpose(), self)
+            self.parents[1].backward((self.grad.transpose() @ self.parents[0]).transpose(), self)
+        elif self.parents_operation == "relu":
+            self.parents[0].backward(self.grad * Tensor(self.parents[0].data > 0), self)
 
         self.__update_parents()
 
     def __add__(self, other):
         if self.autograd and other.autograd:
             return Tensor(self.data + other.data, autograd=True, parents=[self, other], parents_operation="add")
-        return Tensor(self.data  + other.data)
+        return Tensor(self.data + other.data)
 
     def __neg__(self):
         if self.autograd:
@@ -132,3 +138,9 @@ class Tensor:
             return Tensor(self.data @ other.data, autograd=True, parents=[self, other], parents_operation="matmul")
         return Tensor(self.data @ other.data)
 
+    def relu(self):
+        new_data = deepcopy(self.data)
+        new_data[new_data < 0] = 0
+        if self.autograd:
+            return Tensor(new_data, autograd=True, parents=[self], parents_operation="relu")
+        return Tensor(new_data)
