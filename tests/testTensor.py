@@ -51,6 +51,36 @@ class TestTensor(unittest.TestCase):
         self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
         self.assertTrue(new_tensor.autograd)
 
+    def testExpand(self):
+        new_tensor = self.tensor1.expand(dim=1, copies=2)
+        expected = Tensor([[1, 1], [2, 2], [3, 3], [4, 4]], parents=[self.tensor1, 1], parents_operation="expand")
+        self.assertEqual(expected.data.shape, new_tensor.data.shape)
+        self.assertEqual(np.all(expected.data - new_tensor.data), 0)
+        self.assertEqual(expected.parents, new_tensor.parents)
+        self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
+        self.assertTrue(new_tensor.autograd)
+
+    def testSum(self):
+        tensor = Tensor([[1, 5], [2, 6], [3, 7], [4, 8]], autograd=True)
+        new_tensor = tensor.sum(dim=1)
+        expected = Tensor([6, 8, 10, 12], autograd=True, parents=[tensor, 1], parents_operation="sum")
+        self.assertEqual(expected.data.shape, new_tensor.data.shape)
+        self.assertEqual(np.all(expected.data - new_tensor.data), 0)
+        self.assertEqual(expected.parents, new_tensor.parents)
+        self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
+        self.assertTrue(new_tensor.autograd)
+
+    def testMatrixMult(self):
+        self.tensor1 = self.tensor1.expand(dim=1, copies=1)
+        self.tensor2 = self.tensor2.expand(dim=1, copies=1).transpose()
+        new_tensor = self.tensor2 @ self.tensor1
+        expected = Tensor([[70]], parents=[self.tensor2, self.tensor1], parents_operation="matmul")
+        self.assertEqual(expected.data.shape, new_tensor.data.shape)
+        self.assertEqual(np.all(expected.data - new_tensor.data), 0)
+        self.assertEqual(expected.parents, new_tensor.parents)
+        self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
+        self.assertTrue(new_tensor.autograd)
+
     def testBackwardAdd(self):
         new_tensor = self.tensor1 + self.tensor2
         new_tensor.backward()
@@ -79,10 +109,13 @@ class TestTensor(unittest.TestCase):
         new_tensor.backward()
         self.assertEqual(np.all(self.tensor1.grad.data - np.array([3, 12, 27, 48])), 0)
 
-    def testBackwardTranspose(self):
-        new_tensor = self.tensor1.transpose()
+    def testBackwardMatMult(self):
+        self.tensor1 = self.tensor1.expand(dim=1, copies=1)
+        self.tensor2 = self.tensor2.expand(dim=1, copies=1).transpose()
+        new_tensor = self.tensor2 @ self.tensor1
         new_tensor.backward()
-        self.assertEqual(np.all(new_tensor.grad.data - np.array([1])), 0)
+        self.assertEqual(np.all(self.tensor1.grad.data - self.tensor2.data), 0)
+        self.assertEqual(np.all(self.tensor2.grad.data - self.tensor1.data), 0)
 
     def testBackwardNoAutograd(self):
         self.tensor1.autograd = False

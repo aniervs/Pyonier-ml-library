@@ -25,7 +25,7 @@ class Tensor:
             self.parents[0].children[self] = 0
         self.parents[0].children[self] += 1
 
-        if self.parents_operation not in {"neg", "pow", "transpose"}:
+        if self.parents_operation not in {"neg", "pow", "transpose", "expand", "sum"}:
             if self not in self.parents[1].children:
                 self.parents[1].children[self] = 0
             self.parents[1].children[self] += 1
@@ -68,6 +68,16 @@ class Tensor:
             self.parents[0].backward(new_tensor)
         elif self.parents_operation == "transpose":
             self.parents[0].backward(self.grad.transpose())
+        elif self.parents_operation[:3] == "sum":
+            dim = self.parents[1]
+            ds = self.parents[0].data.shape[dim]
+            self.parents[0].backward(self.grad.expand(dim, ds))
+        elif self.parents_operation[:6] == "expand":
+            dim = self.parents[1]
+            self.parents[0].backward(self.grad.sum(dim))
+        elif self.parents_operation == "matmul":
+            self.parents[0].backward(self.grad @ self.parents[1].transpose())
+            self.parents[1].backward(self.parents[0].transpose() @ self.grad)
 
         self.__update_parents()
 
@@ -101,4 +111,24 @@ class Tensor:
             return Tensor(self.data.transpose(), autograd=True, parents=[self], parents_operation="transpose")
         return Tensor(self.data.transpose())
 
+    def sum(self, dim):
+        if self.autograd:
+            return Tensor(self.data.sum(dim), autograd=True, parents=[self, dim], parents_operation=f"sum")
+        return Tensor(self.data.sum(dim))
+
+    def expand(self, dim, copies):
+        trans_cmd = list(range(0, len(self.data.shape)))
+        trans_cmd.insert(dim, len(self.data.shape))
+        new_shape = list(self.data.shape) + [copies]
+        new_data = self.data.repeat(copies).reshape(new_shape)
+        new_data = new_data.transpose(trans_cmd)
+
+        if self.autograd:
+            return Tensor(new_data, autograd=True, parents=[self, dim], parents_operation=f"expand")
+        return Tensor(new_data)
+
+    def __matmul__(self, other):
+        if self.autograd and other.autograd:
+            return Tensor(self.data @ other.data, autograd=True, parents=[self, other], parents_operation="matmul")
+        return Tensor(self.data @ other.data)
 
