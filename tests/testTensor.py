@@ -57,38 +57,16 @@ class TestTensor(unittest.TestCase):
         self.assertEqual(np.all(self.tensor1.grad.data - np.array([1])), 0)
         self.assertEqual(np.all(self.tensor2.grad.data - np.array([1])), 0)
 
-        self.tensor1.autograd = False
-        self.tensor1.grad = None
-        self.tensor2.grad = None
-        new_tensor = self.tensor1 + self.tensor2
-        new_tensor.backward()
-        self.assertIsNone(self.tensor1.grad)
-        self.assertIsNone(self.tensor2.grad)
-
     def testBackwardSub(self):
         new_tensor = self.tensor1 - self.tensor2
         new_tensor.backward()
         self.assertEqual(self.tensor1.grad.data, np.array([1]))
         self.assertEqual(self.tensor2.grad.data, -np.array([1]))
 
-        self.tensor1.autograd = False
-        self.tensor1.grad = None
-        self.tensor2.grad = None
-        new_tensor = self.tensor1 - self.tensor2
-        new_tensor.backward()
-        self.assertIsNone(self.tensor1.grad)
-        self.assertIsNone(self.tensor2.grad)
-
     def testBackwardNeg(self):
         new_tensor = -self.tensor1
         new_tensor.backward()
         self.assertEqual(self.tensor1.grad.data, -np.array([1]))
-
-        self.tensor1.autograd = False
-        self.tensor1.grad = None
-        new_tensor = -self.tensor1
-        new_tensor.backward()
-        self.assertIsNone(self.tensor1.grad)
 
     def testBackwardMul(self):
         new_tensor = self.tensor1 * self.tensor2
@@ -96,24 +74,22 @@ class TestTensor(unittest.TestCase):
         self.assertEqual(np.all(self.tensor1.grad.data - np.array([5, 6, 7, 8])), 0)
         self.assertEqual(np.all(self.tensor2.grad.data - np.array([1, 2, 3, 4])), 0)
 
-        self.tensor1.autograd = False
-        self.tensor1.grad = None
-        self.tensor2.grad = None
-        new_tensor = self.tensor1 * self.tensor2
-        new_tensor.backward()
-        self.assertIsNone(self.tensor1.grad)
-        self.assertIsNone(self.tensor2.grad)
-
     def testBackwardPow(self):
         new_tensor = self.tensor1 ** 3
         new_tensor.backward()
         self.assertEqual(np.all(self.tensor1.grad.data - np.array([3, 12, 27, 48])), 0)
 
+    def testBackwardTranspose(self):
+        new_tensor = self.tensor1.transpose()
+        new_tensor.backward()
+        self.assertEqual(np.all(new_tensor.grad.data - np.array([1])), 0)
+
+    def testBackwardNoAutograd(self):
         self.tensor1.autograd = False
-        self.tensor1.grad = None
-        new_tensor = self.tensor1 ** 3
+        new_tensor = self.tensor1 + self.tensor2
         new_tensor.backward()
         self.assertIsNone(self.tensor1.grad)
+        self.assertIsNone(self.tensor2.grad)
 
     def testBackwardMultipleUses(self):
         d = self.tensor1 + self.tensor2

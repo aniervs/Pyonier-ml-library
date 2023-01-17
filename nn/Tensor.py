@@ -25,7 +25,7 @@ class Tensor:
             self.parents[0].children[self] = 0
         self.parents[0].children[self] += 1
 
-        if self.parents_operation not in {"neg", "pow"}:
+        if self.parents_operation not in {"neg", "pow", "transpose"}:
             if self not in self.parents[1].children:
                 self.parents[1].children[self] = 0
             self.parents[1].children[self] += 1
@@ -66,6 +66,8 @@ class Tensor:
             new_tensor = self.grad * (self.parents[0] ** (power - 1))
             new_tensor.data *= power
             self.parents[0].backward(new_tensor)
+        elif self.parents_operation == "transpose":
+            self.parents[0].backward(self.grad.transpose())
 
         self.__update_parents()
 
@@ -93,4 +95,10 @@ class Tensor:
         if self.autograd:
             return Tensor(self.data ** power, autograd=True, parents=[self, power], parents_operation="pow")
         return Tensor(self.data ** power)
+
+    def transpose(self):
+        if self.autograd:
+            return Tensor(self.data.transpose(), autograd=True, parents=[self], parents_operation="transpose")
+        return Tensor(self.data.transpose())
+
 
