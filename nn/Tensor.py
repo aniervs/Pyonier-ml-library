@@ -39,29 +39,33 @@ class Tensor:
             return
 
         if grad is None:
-            grad = Tensor([1])
+            grad = Tensor(np.ones_like(self.data))
 
         if self.grad is None:
-            self.grad = Tensor([0])
-
+            self.grad = Tensor(np.zeros_like(grad))
         self.grad = self.grad + grad
+
         if grad_vertex is not None:
+            if self.children[grad_vertex] == 0:
+                raise Exception('Cannot Back propagate any more')
             self.children[grad_vertex] -= 1
 
-        if len(self.children) != 0 and max(self.children.values()) != 0:
-            return
+        assert not grad.autograd
 
         if self.parents is None or self.parents_operation is None:
             return
 
+        if len(self.children) != 0 and max(self.children.values()) != 0:
+            return
+
         if self.parents_operation == "add":
-            self.parents[0].backward(grad, self)
-            self.parents[1].backward(grad, self)
+            self.parents[0].backward(self.grad, self)
+            self.parents[1].backward(self.grad, self)
         elif self.parents_operation == "sub":
-            self.parents[0].backward(grad, self)
-            self.parents[1].backward(-grad, self)
+            self.parents[0].backward(self.grad, self)
+            self.parents[1].backward(-self.grad, self)
         elif self.parents_operation == "neg":
-            self.parents[0].backward(-grad, self)
+            self.parents[0].backward(-self.grad, self)
         elif self.parents_operation == "mul":
             self.parents[0].backward(self.grad * self.parents[1], self)
             self.parents[1].backward(self.grad * self.parents[0], self)
@@ -119,7 +123,7 @@ class Tensor:
 
     def sum(self, dim):
         if self.autograd:
-            return Tensor(self.data.sum(dim), autograd=True, parents=[self, dim], parents_operation=f"sum")
+            return Tensor(self.data.sum(dim), autograd=True, parents=[self, dim], parents_operation="sum")
         return Tensor(self.data.sum(dim))
 
     def expand(self, dim, copies):
@@ -130,7 +134,7 @@ class Tensor:
         new_data = new_data.transpose(trans_cmd)
 
         if self.autograd:
-            return Tensor(new_data, autograd=True, parents=[self, dim], parents_operation=f"expand")
+            return Tensor(new_data, autograd=True, parents=[self, dim], parents_operation="expand")
         return Tensor(new_data)
 
     def __matmul__(self, other):

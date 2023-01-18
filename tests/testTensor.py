@@ -99,19 +99,24 @@ class TestTensor(unittest.TestCase):
     def testBackwardAdd(self):
         new_tensor = self.tensor1 + self.tensor2
         new_tensor.backward()
+        self.assertEqual(self.tensor1.grad.data.shape, self.tensor1.data.shape)
+        self.assertEqual(self.tensor2.grad.data.shape, self.tensor2.data.shape)
         self.assertEqual(np.all(self.tensor1.grad.data - np.array([1])), 0)
         self.assertEqual(np.all(self.tensor2.grad.data - np.array([1])), 0)
 
     def testBackwardSub(self):
         new_tensor = self.tensor1 - self.tensor2
         new_tensor.backward()
-        self.assertEqual(self.tensor1.grad.data, np.array([1]))
-        self.assertEqual(self.tensor2.grad.data, -np.array([1]))
+        self.assertEqual(self.tensor1.grad.data.shape, self.tensor1.data.shape)
+        self.assertEqual(self.tensor2.grad.data.shape, self.tensor2.data.shape)
+        self.assertEqual(np.all(self.tensor1.grad.data - np.array([1, 1, 1, 1])), 0)
+        self.assertEqual(np.all(self.tensor2.grad.data + np.array([1, 1, 1, 1])), 0)
 
     def testBackwardNeg(self):
         new_tensor = -self.tensor1
         new_tensor.backward()
-        self.assertEqual(self.tensor1.grad.data, -np.array([1]))
+        self.assertEqual(self.tensor1.grad.data.shape, self.tensor1.data.shape)
+        self.assertEqual(np.all(self.tensor1.grad.data + np.array([1, 1, 1, 1])), 0)
 
     def testBackwardMul(self):
         new_tensor = self.tensor1 * self.tensor2
@@ -146,9 +151,13 @@ class TestTensor(unittest.TestCase):
 
         f.backward()
 
-        self.assertEqual(self.tensor1.grad.data, np.array([1]))
-        self.assertEqual(self.tensor3.grad.data, np.array([1]))
-        self.assertEqual(self.tensor2.grad.data, np.array([2]))
+        self.assertEqual(self.tensor1.grad.data.shape, self.tensor1.data.shape)
+        self.assertEqual(self.tensor2.grad.data.shape, self.tensor2.data.shape)
+        self.assertEqual(self.tensor3.grad.data.shape, self.tensor3.data.shape)
+
+        self.assertEqual(np.all(self.tensor1.grad.data - np.array([1, 1, 1, 1])), 0)
+        self.assertEqual(np.all(self.tensor3.grad.data - np.array([1, 1, 1, 1])), 0)
+        self.assertEqual(np.all(self.tensor2.grad.data - np.array([2, 2, 2, 2])), 0)
 
 
 if __name__ == '__main__':
