@@ -45,7 +45,7 @@ class TestTensor(unittest.TestCase):
 
     def testPower(self):
         new_tensor = self.tensor1 ** 3
-        expected = Tensor([1, 8, 27, 64], parents=[self.tensor1, 3], parents_operation="pow")
+        expected = Tensor([1, 8, 27, 64], parents=[self.tensor1], parents_operation="pow_3")
         self.assertEqual(np.all(expected.data - new_tensor.data), 0)
         self.assertEqual(expected.parents, new_tensor.parents)
         self.assertEqual(expected.parents_operation, new_tensor.parents_operation)
@@ -53,7 +53,7 @@ class TestTensor(unittest.TestCase):
 
     def testExpand(self):
         new_tensor = self.tensor1.expand(dim=1, copies=2)
-        expected = Tensor([[1, 1], [2, 2], [3, 3], [4, 4]], parents=[self.tensor1, 1], parents_operation="expand")
+        expected = Tensor([[1, 1], [2, 2], [3, 3], [4, 4]], parents=[self.tensor1], parents_operation="expand_1")
         self.assertEqual(expected.data.shape, new_tensor.data.shape)
         self.assertEqual(np.all(expected.data - new_tensor.data), 0)
         self.assertEqual(expected.parents, new_tensor.parents)
@@ -63,7 +63,7 @@ class TestTensor(unittest.TestCase):
     def testSum(self):
         tensor = Tensor([[1, 5], [2, 6], [3, 7], [4, 8]], autograd=True)
         new_tensor = tensor.sum(dim=1)
-        expected = Tensor([6, 8, 10, 12], autograd=True, parents=[tensor, 1], parents_operation="sum")
+        expected = Tensor([6, 8, 10, 12], autograd=True, parents=[tensor], parents_operation="sum_1")
         self.assertEqual(expected.data.shape, new_tensor.data.shape)
         self.assertEqual(np.all(expected.data - new_tensor.data), 0)
         self.assertEqual(expected.parents, new_tensor.parents)
